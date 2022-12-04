@@ -1,0 +1,40 @@
+on:
+  release:
+    types: [created]
+
+jobs:
+  releases-matrix:
+    name: Release Go Binary
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+        exclude:
+          - goarch: arm64
+            goos: windows
+    steps:
+      - name: Get Release Info
+        run: |
+          echo "RELEASE_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+          echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+          echo "OS_NAME=${{ matrix.goos }}" >> $GITHUB_ENV
+      - name: Uppercase Darwin
+        if: matrix.goos == 'darwin'
+        run: echo "OS_NAME=Darwin" >> $GITHUB_ENV
+      - name: Uppercase Linux
+        if: matrix.goos == 'linux'
+        run: echo "OS_NAME=Linux" >> $GITHUB_ENV
+      - name: Uppercase Windows
+        if: matrix.goos == 'windows'
+        run: echo "OS_NAME=Win" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - uses: wangyoucao577/go-release-action@v1.34
+        with:
+          md5sum: false
+          extra_files: README.md LICENSE env.example
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goversion: "https://dl.google.com/go/go1.19.3.linux-amd64.tar.gz"
+          asset_name: "${{ env.REPOSITORY_NAME }}-${{ env.OS_NAME }}-${{ matrix.goarch }}"
