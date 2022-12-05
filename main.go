@@ -11,6 +11,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"path/filepath"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
@@ -65,7 +66,11 @@ func main() {
 	}
 	log.Println("Started ChatGPT")
 
-	err = godotenv.Load()
+	ex, err := os.Executable()
+	if err != nil {
+		log.Fatalf("Couldn't load file system: %v", err)
+	}
+	err = godotenv.Load(filepath.Dir(ex) + "/.env")
 	if err != nil {
 		log.Fatalf("Couldn't load .env file: %v", err)
 	}
