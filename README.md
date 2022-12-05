@@ -10,7 +10,12 @@ Download the file corresponding to your OS in the [releases page](https://github
 
 ## Usage
 
-Run the `chatgpt-telegram` binary!
+- Run the `chatgpt-telegram` binary
+- Message the bot with the `/chatgpt` prefix:
+```
+/chatgpt hello
+> Hello! How can I help you today? Is there something specific you'd like to know or talk about? I'm a large language model trained by OpenAI and I'm here to assist you with any questions you might have.
+```
 
 ## License
 

@@ -111,21 +111,16 @@ func main() {
 			continue
 		}
 
-		if !update.Message.IsCommand() {
-			response, err := query_chatgpt(update.Message.Text, page, bot, tgbotapi.NewChatAction(update.Message.Chat.ID, "typing"))
+		switch update.Message.Command() {
+		case "chatgpt":
+			text := strings.TrimSpace(strings.Replace(update.Message.Text, "/chatgpt", "", 1))
+			log.Printf("[%s] %s", update.Message.From.UserName, text)
+			response, err := query_chatgpt(text, page, bot, tgbotapi.NewChatAction(update.Message.Chat.ID, "typing"))
 			if err != nil {
 				msg.Text = fmt.Sprintf("Error: %v", err)
 			} else {
 				msg.Text = response
 			}
-
-			if _, err := bot.Send(msg); err != nil {
-				log.Fatalf("Couldn't send message: %v", err)
-			}
-			continue
-		}
-
-		switch update.Message.Command() {
 		case "help":
 			msg.Text = "Help!"
 		case "start":
