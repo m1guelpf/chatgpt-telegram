@@ -8,7 +8,7 @@ Go CLI to fuels a Telegram bot that lets you interact with [ChatGPT](https://ope
 
 Download the file corresponding to your OS in the [releases page](https://github.com/m1guelpf/chatgpt-telegram/releases/latest):
 
-- `chatgpt-telegramer-Darwin-amd64`: macOS (Intel)
+- `chatgpt-telegram-Darwin-amd64`: macOS (Intel)
 - `chatgpt-telegram-Darwin-arm64`: macOS (M1)
 - `chatgpt-telegram-Linux-amd64`: Linux
 - `chatgpt-telegram-Linux-arm64`: Linux (ARM)
