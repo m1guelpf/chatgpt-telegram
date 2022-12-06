@@ -14,6 +14,7 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
+	"github.com/m1guelpf/chatgpt-telegram/util/ref"
 	"github.com/playwright-community/playwright-go"
 )
 
@@ -35,24 +36,22 @@ func main() {
 	browser, page := launchBrowser(pw, "https://chat.openai.com", true)
 
 	for !isLoggedIn(page) {
-		cookies := <-logIn(pw)
-		for _, cookie := range cookies {
-			convertedCookie := playwright.BrowserContextAddCookiesOptionsCookies{
-				Name:     &cookie.Name,
-				Value:    &cookie.Value,
-				Domain:   &cookie.Domain,
-				Path:     &cookie.Path,
-				Expires:  &cookie.Expires,
-				Secure:   &cookie.Secure,
-				HttpOnly: &cookie.HttpOnly,
-				SameSite: &cookie.SameSite,
-			}
-			if err := browser.AddCookies(convertedCookie); err != nil {
-				log.Fatalf("Couldn't add cookies: %v", err)
-			}
+		authCookie := playwright.BrowserContextAddCookiesOptionsCookies{
+			Path:     ref.Of("/"),
+			Secure:   ref.Of(true),
+			HttpOnly: ref.Of(true),
+			Value:    ref.Of(<-logIn(pw)),
+			Domain:   ref.Of("chat.openai.com"),
+			SameSite: playwright.SameSiteAttributeLax,
+			Name:     ref.Of("__Secure-next-auth.session-token"),
+			Expires:  ref.Of(float64(time.Now().AddDate(0, 1, 0).Unix())),
 		}
 
-		if _, err = page.Goto("https://chat.openai.com"); err != nil {
+		if err := browser.AddCookies(authCookie); err != nil {
+			log.Fatalf("Couldn't add cookie: %v", err)
+		}
+
+		if _, err = page.Goto("https://chat.openai.com/chat"); err != nil {
 			log.Fatalf("Couldn't reload website: %v", err)
 		}
 	}
@@ -270,9 +269,9 @@ func getChatBox(page playwright.Page) playwright.ElementHandle {
 	return input
 }
 
-func logIn(pw *playwright.Playwright) <-chan []*playwright.BrowserContextCookiesResult {
+func logIn(pw *playwright.Playwright) <-chan string {
 	var lock sync.Mutex
-	r := make(chan []*playwright.BrowserContextCookiesResult)
+	r := make(chan string)
 
 	lock.Lock()
 	go func() {
@@ -297,11 +296,19 @@ func logIn(pw *playwright.Playwright) <-chan []*playwright.BrowserContextCookies
 			log.Fatalf("Couldn't store authentication: %v", err)
 		}
 
+		var sessionToken string
+		for _, cookie := range cookies {
+			if cookie.Name == "__Secure-next-auth.session-token" {
+				sessionToken = cookie.Value
+				break
+			}
+		}
+
 		if err := browser.Close(); err != nil {
 			log.Fatalf("could not close browser: %v", err)
 		}
 
-		r <- cookies
+		r <- sessionToken
 	}()
 
 	return r
