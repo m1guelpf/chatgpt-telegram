@@ -68,18 +68,6 @@ func main() {
 
 	log.Printf("Started Telegram bot! Message @%s to start.", bot.Self.UserName)
 
-	userConversations := make(map[int64]Conversation)
-
-	editInterval := 1 * time.Second
-	if os.Getenv("EDIT_WAIT_SECONDS") != "" {
-		editSecond, err := strconv.ParseInt(os.Getenv("EDIT_WAIT_SECONDS"), 10, 64)
-		if err != nil {
-			log.Printf("Couldn't convert your edit seconds setting into int: %v", err)
-			editSecond = 1
-		}
-		editInterval = time.Duration(editSecond) * time.Second
-	}
-
 	for update := range updates {
 		if update.Message == nil {
 			continue
@@ -98,7 +86,7 @@ func main() {
 
 		bot.Request(tgbotapi.NewChatAction(update.Message.Chat.ID, "typing"))
 		if !update.Message.IsCommand() {
-			feed, err := chatGPT.SendMessage(update.Message.Text, userConversations[update.Message.Chat.ID].ConversationID, userConversations[update.Message.Chat.ID].LastMessageID)
+			feed, err := chatGPT.SendMessage(update.Message.Text, update.Message.Chat.ID)
 			if err != nil {
 				msg.Text = fmt.Sprintf("Error: %v", err)
 			}
@@ -109,8 +97,7 @@ func main() {
 			debouncedType := ratelimit.Debounce((10 * time.Second), func() {
 				bot.Request(tgbotapi.NewChatAction(update.Message.Chat.ID, "typing"))
 			})
-
-			debouncedEdit := ratelimit.DebounceWithArgs(editInterval, func(text interface{}, messageId interface{}) {
+			debouncedEdit := ratelimit.DebounceWithArgs((1 * time.Second), func(text interface{}, messageId interface{}) {
 				_, err = bot.Request(tgbotapi.EditMessageTextConfig{
 					BaseEdit: tgbotapi.BaseEdit{
 						ChatID:    msg.ChatID,
@@ -139,10 +126,6 @@ func main() {
 						break pollResponse
 					}
 
-					userConversations[update.Message.Chat.ID] = Conversation{
-						LastMessageID:  response.MessageId,
-						ConversationID: response.ConversationId,
-					}
 					lastResp = markdown.EnsureFormatting(response.Message)
 					msg.Text = lastResp
 
@@ -183,7 +166,7 @@ func main() {
 		case "start":
 			msg.Text = "Send a message to start talking with ChatGPT. You can use /reload at any point to clear the conversation history and start from scratch (don't worry, it won't delete the Telegram messages)."
 		case "reload":
-			userConversations[update.Message.Chat.ID] = Conversation{}
+			chatGPT.ResetConversation(update.Message.Chat.ID)
 			msg.Text = "Started a new conversation. Enjoy!"
 		default:
 			continue
