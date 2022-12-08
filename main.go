@@ -49,7 +49,13 @@ func main() {
 		log.Fatalf("Couldn't load .env file: %v", err)
 	}
 
-	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
+	var bot *tgbotapi.BotAPI
+	apiEndpoint, exist := os.LookupEnv("TELEGRAM_API_ENDPOINT")
+	if exist && apiEndpoint != "" {
+		bot, err = tgbotapi.NewBotAPIWithAPIEndpoint(os.Getenv("TELEGRAM_TOKEN"), apiEndpoint)
+	} else {
+		bot, err = tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
+	}
 	if err != nil {
 		log.Fatalf("Couldn't start Telegram bot: %v", err)
 	}
