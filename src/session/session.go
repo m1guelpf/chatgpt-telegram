@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -73,7 +74,15 @@ func GetSession() (string, error) {
 }
 
 func launchBrowser(pw *playwright.Playwright, url string, headless bool) (playwright.BrowserContext, playwright.Page, error) {
-	browser, err := pw.Chromium.LaunchPersistentContext("/tmp/chatgpt", playwright.BrowserTypeLaunchPersistentContextOptions{Headless: playwright.Bool(headless)})
+	opts := playwright.BrowserTypeLaunchPersistentContextOptions{
+		Headless: playwright.Bool(headless),
+	}
+	if os.Getenv("SOCKS5_PROXY") != "" {
+		opts.Proxy = &playwright.BrowserTypeLaunchPersistentContextOptionsProxy{
+			Server: playwright.String("localhost:8118"),
+		}
+	}
+	browser, err := pw.Chromium.LaunchPersistentContext("/tmp/chatgpt", opts)
 	if err != nil {
 		return nil, nil, errors.New(fmt.Sprintf("Couldn't launch headless browser: %v", err))
 	}
