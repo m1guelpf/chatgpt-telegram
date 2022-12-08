@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -16,6 +18,7 @@ import (
 	"github.com/m1guelpf/chatgpt-telegram/src/markdown"
 	"github.com/m1guelpf/chatgpt-telegram/src/ratelimit"
 	"github.com/m1guelpf/chatgpt-telegram/src/session"
+	"golang.org/x/net/proxy"
 )
 
 type Conversation struct {
@@ -49,9 +52,30 @@ func main() {
 		log.Fatalf("Couldn't load .env file: %v", err)
 	}
 
-	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
-	if err != nil {
-		log.Fatalf("Couldn't start Telegram bot: %v", err)
+	var bot *tgbotapi.BotAPI
+	socks5Proxy := strings.TrimSpace(os.Getenv("SOCKS5_PROXY"))
+	if socks5Proxy != "" {
+		socks5, err := proxy.SOCKS5("tcp", socks5Proxy, nil, proxy.Direct)
+		if err != nil {
+			log.Fatalf("Couldn't set socks5 proxy: %v", err)
+		}
+		client := &http.Client{
+			Transport: &http.Transport{Dial: socks5.Dial},
+		}
+		bot, err = tgbotapi.NewBotAPIWithClient(
+			os.Getenv("TELEGRAM_TOKEN"),
+			tgbotapi.APIEndpoint,
+			client,
+		)
+		if err != nil {
+			log.Fatalf("Couldn't start Telegram bot with socks5 proxy: %v", err)
+		}
+	} else {
+		var err error
+		bot, err = tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
+		if err != nil {
+			log.Fatalf("Couldn't start Telegram bot: %v", err)
+		}
 	}
 
 	c := make(chan os.Signal, 2)
