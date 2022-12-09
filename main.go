@@ -36,10 +36,7 @@ func main() {
 
 	envConfig, err := config.LoadEnvConfig(".env")
 	if err != nil {
-		log.Fatalf("Couldn't load .env config: %v", err)
-	}
-	if err := envConfig.ValidateWithDefaults(); err != nil {
-		log.Fatalf("Invalid .env config: %v", err)
+		log.Printf("Couldn't load .env file: %v. Using shell exposed env variables...", err)
 	}
 
 	bot, err := tgbot.New(envConfig.TelegramToken, time.Duration(envConfig.EditWaitSeconds))
