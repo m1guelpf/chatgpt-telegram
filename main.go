@@ -70,6 +70,16 @@ func main() {
 
 	userConversations := make(map[int64]Conversation)
 
+	editInterval := 1 * time.Second
+	if os.Getenv("EDIT_WAIT_SECONDS") != "" {
+		editSecond, err := strconv.ParseInt(os.Getenv("EDIT_WAIT_SECONDS"), 10, 64)
+		if err != nil {
+			log.Printf("Couldn't convert your edit seconds setting into int: %v", err)
+			editSecond = 1
+		}
+		editInterval = time.Duration(editSecond) * time.Second
+	}
+
 	for update := range updates {
 		if update.Message == nil {
 			continue
@@ -99,7 +109,8 @@ func main() {
 			debouncedType := ratelimit.Debounce((10 * time.Second), func() {
 				bot.Request(tgbotapi.NewChatAction(update.Message.Chat.ID, "typing"))
 			})
-			debouncedEdit := ratelimit.DebounceWithArgs((1 * time.Second), func(text interface{}, messageId interface{}) {
+
+			debouncedEdit := ratelimit.DebounceWithArgs(editInterval, func(text interface{}, messageId interface{}) {
 				_, err = bot.Request(tgbotapi.EditMessageTextConfig{
 					BaseEdit: tgbotapi.BaseEdit{
 						ChatID:    msg.ChatID,
