@@ -38,6 +38,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Couldn't load .env config: %v", err)
 	}
+	if len(envConfig.TelegramID) == 0 {
+		log.Printf("Telegram ID not set, all users will be able to use the bot")
+	}
 	if envConfig.EditWaitSeconds == 0 {
 		log.Printf("EditWaitSeconds not set, defaulting to 1 second")
 		envConfig.EditWaitSeconds = 1
@@ -67,9 +70,11 @@ func main() {
 			updateText      = update.Message.Text
 			updateChatID    = update.Message.Chat.ID
 			updateMessageID = update.Message.MessageID
+			updateUserID    = update.Message.From.ID
 		)
 
-		if envConfig.TelegramID != 0 && envConfig.TelegramID != update.Message.Chat.ID {
+		if len(envConfig.TelegramID) != 0 && !envConfig.HasTelegramID(updateUserID) {
+			log.Printf("User %d is not allowed to use this bot", updateUserID)
 			bot.Send(updateChatID, updateMessageID, "You are not authorized to use this bot.")
 			continue
 		}

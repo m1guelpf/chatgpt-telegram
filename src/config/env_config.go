@@ -3,9 +3,18 @@ package config
 import "github.com/spf13/viper"
 
 type EnvConfig struct {
-	TelegramID      int64  `mapstructure:"TELEGRAM_ID"`
-	TelegramToken   string `mapstructure:"TELEGRAM_TOKEN"`
-	EditWaitSeconds int    `mapstructure:"EDIT_WAIT_SECONDS"`
+	TelegramID      []int64 `mapstructure:"TELEGRAM_ID"`
+	TelegramToken   string  `mapstructure:"TELEGRAM_TOKEN"`
+	EditWaitSeconds int     `mapstructure:"EDIT_WAIT_SECONDS"`
+}
+
+func (e *EnvConfig) HasTelegramID(id int64) bool {
+	for _, v := range e.TelegramID {
+		if v == id {
+			return true
+		}
+	}
+	return false
 }
 
 // LoadEnvConfig loads config from .env file, variables from environment take precedence if provided.

@@ -48,14 +48,14 @@ EDIT_WAIT_SECONDS=10`,
 	t.Run("should load all values from file", func(t *testing.T) {
 		cfg, err := LoadEnvConfig(fileName)
 		require.NoError(t, err)
-		require.Equal(t, int64(123), cfg.TelegramID)
+		require.Equal(t, []int64{123}, cfg.TelegramID)
 		require.Equal(t, "abc", cfg.TelegramToken)
 		require.Equal(t, 10, cfg.EditWaitSeconds)
 	})
 
 	t.Run("env variables should override file values", func(t *testing.T) {
 		unset := setEnvVariables(map[string]string{
-			"TELEGRAM_ID":       "456",
+			"TELEGRAM_ID":       "456,789",
 			"TELEGRAM_TOKEN":    "def",
 			"EDIT_WAIT_SECONDS": "20",
 		})
@@ -63,7 +63,7 @@ EDIT_WAIT_SECONDS=10`,
 		cfg, err := LoadEnvConfig(fileName)
 		unset()
 		require.NoError(t, err)
-		require.Equal(t, int64(456), cfg.TelegramID)
+		require.Equal(t, []int64{456, 789}, cfg.TelegramID)
 		require.Equal(t, "def", cfg.TelegramToken)
 		require.Equal(t, 20, cfg.EditWaitSeconds)
 	})
