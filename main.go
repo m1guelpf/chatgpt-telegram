@@ -5,11 +5,9 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/m1guelpf/chatgpt-telegram/src/chatgpt"
 	"github.com/m1guelpf/chatgpt-telegram/src/config"
 	"github.com/m1guelpf/chatgpt-telegram/src/session"
@@ -17,42 +15,36 @@ import (
 )
 
 func main() {
-	config, err := config.Init()
+	persistentConfig, err := config.Init()
 	if err != nil {
 		log.Fatalf("Couldn't load config: %v", err)
 	}
 
-	if config.OpenAISession == "" {
+	if persistentConfig.OpenAISession == "" {
 		session, err := session.GetSession()
 		if err != nil {
 			log.Fatalf("Couldn't get OpenAI session: %v", err)
 		}
 
-		err = config.Set("OpenAISession", session)
+		err = persistentConfig.Set("OpenAISession", session)
 		if err != nil {
 			log.Fatalf("Couldn't save OpenAI session: %v", err)
 		}
 	}
 
-	chatGPT := chatgpt.Init(config)
+	chatGPT := chatgpt.Init(persistentConfig)
 	log.Println("Started ChatGPT")
 
-	err = godotenv.Load()
+	envConfig, err := config.LoadEnvConfig(".env")
 	if err != nil {
-		log.Fatalf("Couldn't load .env file: %v", err)
+		log.Fatalf("Couldn't load .env config: %v", err)
+	}
+	if envConfig.EditWaitSeconds == 0 {
+		log.Printf("EditWaitSeconds not set, defaulting to 1 second")
+		envConfig.EditWaitSeconds = 1
 	}
 
-	editInterval := 1 * time.Second
-	if os.Getenv("EDIT_WAIT_SECONDS") != "" {
-		editSecond, err := strconv.ParseInt(os.Getenv("EDIT_WAIT_SECONDS"), 10, 64)
-		if err != nil {
-			log.Printf("Couldn't convert your edit seconds setting into int: %v", err)
-			editSecond = 1
-		}
-		editInterval = time.Duration(editSecond) * time.Second
-	}
-
-	bot, err := tgbot.New(os.Getenv("TELEGRAM_TOKEN"), editInterval)
+	bot, err := tgbot.New(os.Getenv("TELEGRAM_TOKEN"), time.Duration(envConfig.EditWaitSeconds))
 	if err != nil {
 		log.Fatalf("Couldn't start Telegram bot: %v", err)
 	}
@@ -78,8 +70,7 @@ func main() {
 			updateMessageID = update.Message.MessageID
 		)
 
-		userId := strconv.FormatInt(update.Message.Chat.ID, 10)
-		if os.Getenv("TELEGRAM_ID") != "" && userId != os.Getenv("TELEGRAM_ID") {
+		if envConfig.TelegramID != 0 && envConfig.TelegramID != update.Message.Chat.ID {
 			bot.Send(updateChatID, updateMessageID, "You are not authorized to use this bot.")
 			continue
 		}
