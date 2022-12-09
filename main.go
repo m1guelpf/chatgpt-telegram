@@ -46,7 +46,7 @@ func main() {
 
 	err = godotenv.Load()
 	if err != nil {
-		log.Fatalf("Couldn't load .env file: %v", err)
+		log.Printf("Couldn't load .env file: %v. Using shell exposed env variables...", err)
 	}
 
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
