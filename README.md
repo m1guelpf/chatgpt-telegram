@@ -5,18 +5,19 @@
 Go CLI to fuels a Telegram bot that lets you interact with [ChatGPT](https://openai.com/blog/chatgpt/), a large language model trained by OpenAI.
 
 ## Installation
-Download the file corresponding to your OS in the [releases page](https://github.com/m1guelpf/chatgpt-telegram/releases/latest). 
+Download the file corresponding to your OS in the [releases page](https://github.com/m1guelpf/chatgpt-telegram/releases/latest).
 - `chatgpt-telegram-Darwin-amd64`: macOS (Intel)
 - `chatgpt-telegram-Darwin-arm64`: macOS (M1)
 - `chatgpt-telegram-Linux-amd64`: Linux
 - `chatgpt-telegram-Linux-arm64`: Linux (ARM)
 - `chatgpt-telegram-Win-amd64`: Windows
 
-After you download the file, extract it into a folder and open the `env.example` file with a text editor and fill in your credentials. 
+After you download the file, extract it into a folder and open the `env.example` file with a text editor and fill in your credentials.
 - `TELEGRAM_TOKEN`: Your Telegram Bot token
   - Follow [this guide](https://core.telegram.org/bots/tutorial#obtain-your-bot-token) to create a bot and get the token.
 - `TELEGRAM_ID` (Optional): Your Telegram User ID
   - If you set this, only you will be able to interact with the bot.
+  - You can set multiple IDs by separate them with commas.
   - To get your ID, message `@userinfobot` on Telegram.
 - `EDIT_WAIT_SECONDS` (Optional): Amount of seconds to wait between edits
   - This is set to `1` by default, but you can increase if you start getting a lot of `Too Many Requests` errors.

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -15,6 +16,15 @@ import (
 	"github.com/m1guelpf/chatgpt-telegram/src/session"
 	"github.com/m1guelpf/chatgpt-telegram/src/tgbot"
 )
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
 
 func main() {
 	config, err := config.Init()
@@ -79,7 +89,8 @@ func main() {
 		)
 
 		userId := strconv.FormatInt(update.Message.Chat.ID, 10)
-		if os.Getenv("TELEGRAM_ID") != "" && userId != os.Getenv("TELEGRAM_ID") {
+		whiteLists := strings.Split(os.Getenv("TELEGRAM_ID"), ",")
+		if !(len(whiteLists) == 1 && whiteLists[0] == "") && !contains(whiteLists, userId) {
 			bot.Send(updateChatID, updateMessageID, "You are not authorized to use this bot.")
 			continue
 		}
