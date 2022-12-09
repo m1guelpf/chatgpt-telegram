@@ -15,19 +15,18 @@ import (
 )
 
 func main() {
-	persistentConfig, err := config.Init()
+	persistentConfig, err := config.LoadOrCreatePersistentConfig()
 	if err != nil {
 		log.Fatalf("Couldn't load config: %v", err)
 	}
 
 	if persistentConfig.OpenAISession == "" {
-		session, err := session.GetSession()
+		token, err := session.GetSession()
 		if err != nil {
 			log.Fatalf("Couldn't get OpenAI session: %v", err)
 		}
 
-		err = persistentConfig.Set("OpenAISession", session)
-		if err != nil {
+		if err = persistentConfig.SetSessionToken(token); err != nil {
 			log.Fatalf("Couldn't save OpenAI session: %v", err)
 		}
 	}
@@ -44,7 +43,7 @@ func main() {
 		envConfig.EditWaitSeconds = 1
 	}
 
-	bot, err := tgbot.New(os.Getenv("TELEGRAM_TOKEN"), time.Duration(envConfig.EditWaitSeconds))
+	bot, err := tgbot.New(envConfig.TelegramToken, time.Duration(envConfig.EditWaitSeconds))
 	if err != nil {
 		log.Fatalf("Couldn't start Telegram bot: %v", err)
 	}

@@ -48,7 +48,7 @@ type ChatResponse struct {
 	Message string
 }
 
-func Init(config config.Config) *ChatGPT {
+func Init(config *config.Config) *ChatGPT {
 	return &ChatGPT{
 		AccessTokenMap: expirymap.New(),
 		SessionToken:   config.OpenAISession,
