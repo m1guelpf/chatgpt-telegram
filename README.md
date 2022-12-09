@@ -5,7 +5,7 @@
 Go CLI to fuels a Telegram bot that lets you interact with [ChatGPT](https://openai.com/blog/chatgpt/), a large language model trained by OpenAI.
 
 ## Installation
-- Download the file corresponding to your OS in the [releases page](https://github.com/m1guelpf/chatgpt-telegram/releases/latest). 
+Download the file corresponding to your OS in the [releases page](https://github.com/m1guelpf/chatgpt-telegram/releases/latest). 
 - `chatgpt-telegram-Darwin-amd64`: macOS (Intel)
 - `chatgpt-telegram-Darwin-arm64`: macOS (M1)
 - `chatgpt-telegram-Linux-amd64`: Linux
@@ -13,13 +13,13 @@ Go CLI to fuels a Telegram bot that lets you interact with [ChatGPT](https://ope
 - `chatgpt-telegram-Win-amd64`: Windows
 
 After you download the file, extract it into a folder and open the `env.example` file with a text editor and fill in your credentials. 
-- You'll need your bot token(`TELEGRAM_TOKEN`)
-  - Which you can find [here](https://core.telegram.org/bots/tutorial#obtain-your-bot-token)
-- Optionally, your telegram id(`TELEGRAM_ID`)
-  - Which you can find by DMing `@userinfobot` on Telegram. It can limit the user of this bot.
-- Optionally, your debounced edit seconds (`DEBOUNCED_EDIT_WAIT_SECONDS`)
-  - It controls the edit rate of sending telegram message. When you meet errors like below, increase the number:
-    - ```Couldn't edit message: Too Many Requests: retry after 30```
+- `TELEGRAM_TOKEN`: Your Telegram Bot token
+  - Follow [this guide](https://core.telegram.org/bots/tutorial#obtain-your-bot-token) to create a bot and get the token.
+- `TELEGRAM_ID` (Optional): Your Telegram User ID
+  - If you set this, only you will be able to interact with the bot.
+  - To get your ID, message `@userinfobot` on Telegram.
+- `EDIT_WAIT_SECONDS` (Optional): Amount of seconds to wait between edits
+  - This is set to `1` by default, but you can increase if you start getting a lot of `Too Many Requests` errors.
 - Save the file, and rename it to `.env`.
 > **Note** Make sure you rename the file to _exactly_ `.env`! The program won't work otherwise.
 
