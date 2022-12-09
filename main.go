@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/m1guelpf/chatgpt-telegram/src/chatgpt"
@@ -41,7 +42,17 @@ func main() {
 		log.Fatalf("Couldn't load .env file: %v", err)
 	}
 
-	bot, err := tgbot.New(os.Getenv("TELEGRAM_TOKEN"))
+	editInterval := 1 * time.Second
+	if os.Getenv("EDIT_WAIT_SECONDS") != "" {
+		editSecond, err := strconv.ParseInt(os.Getenv("EDIT_WAIT_SECONDS"), 10, 64)
+		if err != nil {
+			log.Printf("Couldn't convert your edit seconds setting into int: %v", err)
+			editSecond = 1
+		}
+		editInterval = time.Duration(editSecond) * time.Second
+	}
+
+	bot, err := tgbot.New(os.Getenv("TELEGRAM_TOKEN"), editInterval)
 	if err != nil {
 		log.Fatalf("Couldn't start Telegram bot: %v", err)
 	}

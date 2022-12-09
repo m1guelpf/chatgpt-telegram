@@ -11,19 +11,21 @@ import (
 )
 
 type Bot struct {
-	Username string
-	api      *tgbotapi.BotAPI
+	Username     string
+	api          *tgbotapi.BotAPI
+	editInterval time.Duration
 }
 
-func New(token string) (*Bot, error) {
+func New(token string, editInterval time.Duration) (*Bot, error) {
 	api, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Bot{
-		Username: api.Self.UserName,
-		api:      api,
+		Username:     api.Self.UserName,
+		api:          api,
+		editInterval: editInterval,
 	}, nil
 }
 
@@ -65,7 +67,7 @@ func (b *Bot) SendTyping(chatID int64) {
 
 func (b *Bot) SendAsLiveOutput(chatID int64, replyTo int, feed chan chatgpt.ChatResponse) {
 	debouncedType := ratelimit.Debounce(10*time.Second, func() { b.SendTyping(chatID) })
-	debouncedEdit := ratelimit.DebounceWithArgs(time.Second, func(text interface{}, messageId interface{}) {
+	debouncedEdit := ratelimit.DebounceWithArgs(b.editInterval, func(text interface{}, messageId interface{}) {
 		if err := b.SendEdit(chatID, messageId.(int), text.(string)); err != nil {
 			log.Printf("Couldn't edit message: %v", err)
 		}
