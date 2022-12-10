@@ -38,9 +38,26 @@ Finally, add your cookie to the file and save it. It should look like this: `{ "
 
 ## Docker
 
-It is also possible to launch the bot via the docker image included.
+It is also possible to launch the bot via the docker image generated.
 
-Check [docker-compose](./docker-compose.yml) file to understands how to do it.
+```sh
+docker pull ghcr.io/m1guelpf/chatgpt-telegram
+```
+
+`docker-compose` example
+
+```yaml
+services:
+  chatgpt-telegram:
+    image: ghcr.io/m1guelpf/chatgpt-telegram
+    container_name: chatgpt-telegram
+    volumes:
+      # your ".config" local folder must include a "chatgpt.json" file
+      - .config/:/root/.config
+    environment:
+      - TELEGRAM_ID=
+      - TELEGRAM_TOKEN=
+```
 
 ## License
 

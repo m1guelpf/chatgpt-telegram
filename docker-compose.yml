@@ -1,9 +1,0 @@
-services:
-  chatgpt-telegram:
-    build: .
-    container_name: chatgpt-telegram
-    volumes:
-      - .config/:/root/.config
-    environment:
-      - TELEGRAM_ID=
-      - TELEGRAM_TOKEN=
