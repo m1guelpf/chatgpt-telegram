@@ -2,9 +2,10 @@ package config
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func createFile(name string, content string) (remove func(), err error) {
@@ -37,34 +38,109 @@ func setEnvVariables(vals map[string]string) func() {
 }
 
 func TestLoadEnvConfig(t *testing.T) {
-	const fileName = "test.env"
-	remove, err := createFile(fileName, `TELEGRAM_ID=123
+	for label, test := range map[string]struct {
+		fileContent string
+		envVars     map[string]string
+		want        *EnvConfig
+	}{
+		"all values empty in file and env": {
+			fileContent: `TELEGRAM_ID=
+TELEGRAM_TOKEN=
+EDIT_WAIT_SECONDS=`,
+			want: &EnvConfig{
+				TelegramID:      []int64{},
+				TelegramToken:   "",
+				EditWaitSeconds: 0,
+			},
+		},
+		"all values provided in file, single TELEGRAM_ID": {
+			fileContent: `TELEGRAM_ID=123
 TELEGRAM_TOKEN=abc
 EDIT_WAIT_SECONDS=10`,
-	)
-	require.NoError(t, err)
-	defer remove()
+			want: &EnvConfig{
+				TelegramID:      []int64{123},
+				TelegramToken:   "abc",
+				EditWaitSeconds: 10,
+			},
+		},
+		"multiple TELEGRAM_IDs provided in file": {
+			fileContent: `TELEGRAM_ID=123,456
+TELEGRAM_TOKEN=abc
+EDIT_WAIT_SECONDS=10`,
+			envVars: map[string]string{},
+			want: &EnvConfig{
+				TelegramID:      []int64{123, 456},
+				TelegramToken:   "abc",
+				EditWaitSeconds: 10,
+			},
+		},
+		"env variables should override file values": {
+			fileContent: `TELEGRAM_ID=123
+TELEGRAM_TOKEN=abc
+EDIT_WAIT_SECONDS=10`,
+			envVars: map[string]string{
+				"TELEGRAM_ID":       "456",
+				"TELEGRAM_TOKEN":    "def",
+				"EDIT_WAIT_SECONDS": "20",
+			},
+			want: &EnvConfig{
+				TelegramID:      []int64{456},
+				TelegramToken:   "def",
+				EditWaitSeconds: 20,
+			},
+		},
+		"multiple TELEGRAM_IDs provided in env": {
+			fileContent: `TELEGRAM_ID=123
+TELEGRAM_TOKEN=abc
+EDIT_WAIT_SECONDS=10`,
+			envVars: map[string]string{
+				"TELEGRAM_ID": "456,789",
+			},
+			want: &EnvConfig{
+				TelegramID:      []int64{456, 789},
+				TelegramToken:   "abc",
+				EditWaitSeconds: 10,
+			},
+		},
+	} {
+		t.Run(label, func(t *testing.T) {
+			unset := setEnvVariables(test.envVars)
+			t.Cleanup(unset)
 
-	t.Run("should load all values from file", func(t *testing.T) {
-		cfg, err := LoadEnvConfig(fileName)
-		require.NoError(t, err)
-		require.Equal(t, []int64{123}, cfg.TelegramID)
-		require.Equal(t, "abc", cfg.TelegramToken)
-		require.Equal(t, 10, cfg.EditWaitSeconds)
-	})
+			remove, err := createFile("test.env", test.fileContent)
+			require.NoError(t, err)
+			t.Cleanup(remove)
 
-	t.Run("env variables should override file values", func(t *testing.T) {
-		unset := setEnvVariables(map[string]string{
-			"TELEGRAM_ID":       "456,789",
-			"TELEGRAM_TOKEN":    "def",
-			"EDIT_WAIT_SECONDS": "20",
+			cfg, err := LoadEnvConfig("test.env")
+			require.NoError(t, err)
+			require.Equal(t, test.want, cfg)
 		})
+	}
 
-		cfg, err := LoadEnvConfig(fileName)
-		unset()
-		require.NoError(t, err)
-		require.Equal(t, []int64{456, 789}, cfg.TelegramID)
-		require.Equal(t, "def", cfg.TelegramToken)
-		require.Equal(t, 20, cfg.EditWaitSeconds)
-	})
+	//t.Run("all values empty in file", func(t *testing.T) {
+	//
+	//})
+	//
+	//t.Run("should load all values from file", func(t *testing.T) {
+	//	cfg, err := LoadEnvConfig(fileName)
+	//	require.NoError(t, err)
+	//	require.Equal(t, []int64{123}, cfg.TelegramID)
+	//	require.Equal(t, "abc", cfg.TelegramToken)
+	//	require.Equal(t, 10, cfg.EditWaitSeconds)
+	//})
+	//
+	//t.Run("env variables should override file values", func(t *testing.T) {
+	//	unset := setEnvVariables(map[string]string{
+	//		"TELEGRAM_ID":       "456,789",
+	//		"TELEGRAM_TOKEN":    "def",
+	//		"EDIT_WAIT_SECONDS": "20",
+	//	})
+	//
+	//	cfg, err := LoadEnvConfig(fileName)
+	//	unset()
+	//	require.NoError(t, err)
+	//	require.Equal(t, []int64{456, 789}, cfg.TelegramID)
+	//	require.Equal(t, "def", cfg.TelegramToken)
+	//	require.Equal(t, 20, cfg.EditWaitSeconds)
+	//})
 }

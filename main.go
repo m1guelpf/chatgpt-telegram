@@ -38,12 +38,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Couldn't load .env config: %v", err)
 	}
-	if len(envConfig.TelegramID) == 0 {
-		log.Printf("Telegram ID not set, all users will be able to use the bot")
-	}
-	if envConfig.EditWaitSeconds == 0 {
-		log.Printf("EditWaitSeconds not set, defaulting to 1 second")
-		envConfig.EditWaitSeconds = 1
+	if err := envConfig.Validate(); err != nil {
+		log.Fatalf("Invalid .env config: %v", err)
 	}
 
 	bot, err := tgbot.New(envConfig.TelegramToken, time.Duration(envConfig.EditWaitSeconds))
