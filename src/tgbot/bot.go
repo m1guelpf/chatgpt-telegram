@@ -2,6 +2,7 @@ package tgbot
 
 import (
 	"log"
+	"os"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -17,7 +18,14 @@ type Bot struct {
 }
 
 func New(token string, editInterval time.Duration) (*Bot, error) {
-	api, err := tgbotapi.NewBotAPI(token)
+	var api *tgbotapi.BotAPI
+	var err error
+	apiEndpoint, exist := os.LookupEnv("TELEGRAM_API_ENDPOINT")
+	if exist && apiEndpoint != "" {
+		api, err = tgbotapi.NewBotAPIWithAPIEndpoint(token, apiEndpoint)
+	} else {
+		api, err = tgbotapi.NewBotAPI(token)
+	}
 	if err != nil {
 		return nil, err
 	}
