@@ -16,9 +16,15 @@ import (
 const KEY_ACCESS_TOKEN = "accessToken"
 const USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
 
+type Conversation struct {
+	ID            string
+	LastMessageID string
+}
+
 type ChatGPT struct {
 	SessionToken   string
 	AccessTokenMap expirymap.ExpiryMap
+	conversations  map[int64]Conversation
 }
 
 type SessionResult struct {
@@ -39,15 +45,14 @@ type MessageResponse struct {
 }
 
 type ChatResponse struct {
-	Message        string
-	MessageId      string
-	ConversationId string
+	Message string
 }
 
-func Init(config config.Config) ChatGPT {
-	return ChatGPT{
+func Init(config config.Config) *ChatGPT {
+	return &ChatGPT{
 		AccessTokenMap: expirymap.New(),
 		SessionToken:   config.OpenAISession,
+		conversations:  make(map[int64]Conversation),
 	}
 }
 
@@ -61,8 +66,11 @@ func (c *ChatGPT) EnsureAuth() error {
 	return err
 }
 
-func (c *ChatGPT) SendMessage(message string, conversationId string, messageId string) (chan ChatResponse, error) {
-	r := make(chan ChatResponse)
+func (c *ChatGPT) ResetConversation(chatID int64) {
+	c.conversations[chatID] = Conversation{}
+}
+
+func (c *ChatGPT) SendMessage(message string, tgChatID int64) (chan ChatResponse, error) {
 	accessToken, err := c.refreshAccessToken()
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("Couldn't get access token: %v", err))
@@ -75,10 +83,13 @@ func (c *ChatGPT) SendMessage(message string, conversationId string, messageId s
 		"Authorization": fmt.Sprintf("Bearer %s", accessToken),
 	}
 
-	err = client.Connect(message, conversationId, messageId)
+	convo := c.conversations[tgChatID]
+	err = client.Connect(message, convo.ID, convo.LastMessageID)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("Couldn't connect to ChatGPT: %v", err))
 	}
+
+	r := make(chan ChatResponse)
 
 	go func() {
 		defer close(r)
@@ -98,11 +109,11 @@ func (c *ChatGPT) SendMessage(message string, conversationId string, messageId s
 				}
 
 				if len(res.Message.Content.Parts) > 0 {
-					r <- ChatResponse{
-						MessageId:      res.Message.ID,
-						ConversationId: res.ConversationId,
-						Message:        res.Message.Content.Parts[0],
-					}
+					convo.ID = res.ConversationId
+					convo.LastMessageID = res.Message.ID
+					c.conversations[tgChatID] = convo
+
+					r <- ChatResponse{Message: res.Message.Content.Parts[0]}
 				}
 			}
 		}
