@@ -39,7 +39,7 @@ func main() {
 
 	err = godotenv.Load()
 	if err != nil {
-		log.Fatalf("Couldn't load .env file: %v", err)
+		log.Printf("Couldn't load .env file: %v. Using shell exposed env variables...", err)
 	}
 
 	editInterval := 1 * time.Second

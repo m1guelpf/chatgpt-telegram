@@ -25,6 +25,31 @@ After you download the file, extract it into a folder and open the `env.example`
 
 Finally, open the terminal in your computer (if you're on windows, look for `PowerShell`), navigate to the path you extracted the above file (you can use `cd dirname` to navigate to a directory, ask ChatGPT if you need more assistance 😉) and run `./chatgpt-telegram`.
 
+### Running with Docker
+
+If you're trying to run this on a server with an existing Docker setup, you might want to use our Docker image instead.
+
+```sh
+docker pull ghcr.io/m1guelpf/chatgpt-telegram
+```
+
+Here's how you'd set things up with `docker-compose`:
+
+```yaml
+services:
+  chatgpt-telegram:
+    image: ghcr.io/m1guelpf/chatgpt-telegram
+    container_name: chatgpt-telegram
+    volumes:
+      # your ".config" local folder must include a "chatgpt.json" file
+      - .config/:/root/.config
+    environment:
+      - TELEGRAM_ID=
+      - TELEGRAM_TOKEN=
+```
+
+> **Note** The docker setup is optimized for the Browserless authentication mechanism, described below. Make sure you update the `.config/chatgpt.json` file in this repo with your session token before running.
+
 ## Authentication
 
 By default, the program will launch a browser for you to sign into your account, and close it once you're signed in. If this setup doesn't work for you (there are issues with the browser starting, you want to run this in a computer with no screen, etc.), you can manually extract your session from your browser instead.
