@@ -53,6 +53,18 @@ EDIT_WAIT_SECONDS=`,
 				EditWaitSeconds: 0,
 			},
 		},
+		"no file, all values through env": {
+			envVars: map[string]string{
+				"TELEGRAM_ID":       "123,456",
+				"TELEGRAM_TOKEN":    "token",
+				"EDIT_WAIT_SECONDS": "10",
+			},
+			want: &EnvConfig{
+				TelegramID:      []int64{123, 456},
+				TelegramToken:   "token",
+				EditWaitSeconds: 10,
+			},
+		},
 		"all values provided in file, single TELEGRAM_ID": {
 			fileContent: `TELEGRAM_ID=123
 TELEGRAM_TOKEN=abc
@@ -107,9 +119,11 @@ EDIT_WAIT_SECONDS=10`,
 			unset := setEnvVariables(test.envVars)
 			t.Cleanup(unset)
 
-			remove, err := createFile("test.env", test.fileContent)
-			require.NoError(t, err)
-			t.Cleanup(remove)
+			if test.fileContent != "" {
+				remove, err := createFile("test.env", test.fileContent)
+				require.NoError(t, err)
+				t.Cleanup(remove)
+			}
 
 			cfg, err := LoadEnvConfig("test.env")
 			require.NoError(t, err)

@@ -1,8 +1,8 @@
 package config
 
 import (
+	"bytes"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 
@@ -15,6 +15,12 @@ type EnvConfig struct {
 	EditWaitSeconds int     `mapstructure:"EDIT_WAIT_SECONDS"`
 }
 
+// emptyConfig is used to initialize viper.
+// It is required to register config keys with viper when in case no config file is provided.
+const emptyConfig = `TELEGRAM_ID=
+TELEGRAM_TOKEN=
+EDIT_WAIT_SECONDS=`
+
 func (e *EnvConfig) HasTelegramID(id int64) bool {
 	for _, v := range e.TelegramID {
 		if v == id {
@@ -25,18 +31,24 @@ func (e *EnvConfig) HasTelegramID(id int64) bool {
 }
 
 // LoadEnvConfig loads config from .env file, variables from environment take precedence if provided.
+// If no .env file is provided, config is loaded from environment variables.
 func LoadEnvConfig(path string) (*EnvConfig, error) {
-	if !fileExists(path) {
-		return nil, fmt.Errorf("config file '%s' does not exist", path)
+	fileExists := fileExists(path)
+	if !fileExists {
+		log.Printf("config file %s does not exist, using env variables", path)
 	}
 
 	v := viper.New()
-	v.SetConfigFile(path)
 	v.SetConfigType("env")
 	v.AutomaticEnv()
-
-	if err := v.ReadInConfig(); err != nil {
+	if err := v.ReadConfig(bytes.NewBufferString(emptyConfig)); err != nil {
 		return nil, err
+	}
+	if fileExists {
+		v.SetConfigFile(path)
+		if err := v.ReadInConfig(); err != nil {
+			return nil, err
+		}
 	}
 
 	var cfg EnvConfig
@@ -53,7 +65,7 @@ func fileExists(path string) bool {
 	return true
 }
 
-func (e *EnvConfig) Validate() error {
+func (e *EnvConfig) ValidateWithDefaults() error {
 	if e.TelegramToken == "" {
 		return errors.New("TELEGRAM_TOKEN is not set")
 	}

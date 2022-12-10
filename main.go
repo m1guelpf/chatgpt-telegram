@@ -38,7 +38,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Couldn't load .env config: %v", err)
 	}
-	if err := envConfig.Validate(); err != nil {
+	if err := envConfig.ValidateWithDefaults(); err != nil {
 		log.Fatalf("Invalid .env config: %v", err)
 	}
 
