@@ -1,4 +1,4 @@
-module github.com/m1guelpf/chatgpt-telegram
+module github.com/shamu00/chatgpt-telegram
 
 go 1.19
 
@@ -8,6 +8,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/launchdarkly/eventsource v1.7.1
 	github.com/playwright-community/playwright-go v0.2000.1
+	github.com/sashabaranov/go-gpt3 v0.0.0-20221202105456-0f9f4aa343ad
 	github.com/spf13/viper v1.14.0
 )
 

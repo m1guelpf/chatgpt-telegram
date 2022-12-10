@@ -8,3 +8,7 @@ build:
 
 clean:
 	rm chatgpt-telegram
+
+
+deploy:
+

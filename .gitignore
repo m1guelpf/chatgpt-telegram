@@ -1,2 +1,5 @@
 .env
 vendor
+.idea
+
+chatgpt-telegram

@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/m1guelpf/chatgpt-telegram/src/ref"
 	"github.com/playwright-community/playwright-go"
+	"github.com/shamu00/chatgpt-telegram/src/ref"
 )
 
 func GetSession() (string, error) {
