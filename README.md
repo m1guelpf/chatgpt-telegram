@@ -18,6 +18,7 @@ After you download the file, extract it into a folder and open the `env.example`
 - `TELEGRAM_ID` (Optional): Your Telegram User ID
   - If you set this, only you will be able to interact with the bot.
   - To get your ID, message `@userinfobot` on Telegram.
+  - Multiple IDs can be provided, separated by commas.
 - `EDIT_WAIT_SECONDS` (Optional): Amount of seconds to wait between edits
   - This is set to `1` by default, but you can increase if you start getting a lot of `Too Many Requests` errors.
 - Save the file, and rename it to `.env`.
