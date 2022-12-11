@@ -69,6 +69,9 @@ func main() {
 			updateChatID    = update.Message.Chat.ID
 			updateMessageID = update.Message.MessageID
 			updateUserID    = update.Message.From.ID
+			isChatBotInGroup = update.Message.Chat.IsGroup() || update.Message.Chat.IsSuperGroup()
+                        isAtChatBot = strings.HasPrefix(update.Message.Text, "@"+bot.Username) || strings.HasSuffix(update.Message.Text, "@"+bot.Username)
+                        isPrivateChat = update.Message.Chat.IsPrivate()
 		)
 
 		if len(envConfig.TelegramID) != 0 && !envConfig.HasTelegramID(updateUserID) {
@@ -77,7 +80,7 @@ func main() {
 			continue
 		}
 
-		if !update.Message.IsCommand() && (update.Message.Chat.IsPrivate() || ((update.Message.Chat.IsGroup() || update.Message.Chat.IsSuperGroup()) && strings.HasPrefix(update.Message.Text, "@" + bot.Username))) {
+		if !update.Message.IsCommand() && (isPrivateChat || (isChatBotInGroup && isAtChatBot)) {
 			bot.SendTyping(updateChatID)
 
 			feed, err := chatGPT.SendMessage(updateText, updateChatID)
