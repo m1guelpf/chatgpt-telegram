@@ -13,13 +13,15 @@ type EnvConfig struct {
 	TelegramID      []int64 `mapstructure:"TELEGRAM_ID"`
 	TelegramToken   string  `mapstructure:"TELEGRAM_TOKEN"`
 	EditWaitSeconds int     `mapstructure:"EDIT_WAIT_SECONDS"`
+	ManualAuth      bool    `mapstructure:"MANUAL_AUTH"`
 }
 
 // emptyConfig is used to initialize viper.
 // It is required to register config keys with viper when in case no config file is provided.
 const emptyConfig = `TELEGRAM_ID=
 TELEGRAM_TOKEN=
-EDIT_WAIT_SECONDS=`
+EDIT_WAIT_SECONDS=
+MANUAL_AUTH=`
 
 func (e *EnvConfig) HasTelegramID(id int64) bool {
 	for _, v := range e.TelegramID {
@@ -46,7 +48,7 @@ func LoadEnvConfig(path string) (*EnvConfig, error) {
 	}
 	if fileExists {
 		v.SetConfigFile(path)
-		if err := v.ReadInConfig(); err != nil {
+		if err := v.MergeInConfig(); err != nil {
 			return nil, err
 		}
 	}
@@ -72,7 +74,7 @@ func (e *EnvConfig) ValidateWithDefaults() error {
 	if len(e.TelegramID) == 0 {
 		log.Printf("TELEGRAM_ID is not set, all users will be able to use the bot")
 	}
-	if e.EditWaitSeconds < 0 {
+	if e.EditWaitSeconds <= 0 {
 		log.Printf("EDIT_WAIT_SECONDS not set, defaulting to 1")
 		e.EditWaitSeconds = 1
 	}
