@@ -14,13 +14,27 @@ import (
 	"github.com/m1guelpf/chatgpt-telegram/src/tgbot"
 )
 
+const (
+	messageStart = "Send a message to start talking with ChatGPT. You can use /reload at any point to clear the conversation history and start from scratch (don't worry, it won't delete the Telegram messages)."
+	messageHelp  = `/reload - clear chatGPT conversation history (Telegram messages will not be deleted)
+/setToken <token> - set the openAI session token`
+)
+
 func main() {
+	envConfig, err := config.LoadEnvConfig(".env")
+	if err != nil {
+		log.Fatalf("Couldn't load .env config: %v", err)
+	}
+	if err := envConfig.ValidateWithDefaults(); err != nil {
+		log.Fatalf("Invalid .env config: %v", err)
+	}
+
 	persistentConfig, err := config.LoadOrCreatePersistentConfig()
 	if err != nil {
 		log.Fatalf("Couldn't load config: %v", err)
 	}
 
-	if persistentConfig.OpenAISession == "" {
+	if persistentConfig.OpenAISession == "" && !envConfig.ManualAuth {
 		token, err := session.GetSession()
 		if err != nil {
 			log.Fatalf("Couldn't get OpenAI session: %v", err)
@@ -33,14 +47,6 @@ func main() {
 
 	chatGPT := chatgpt.Init(persistentConfig)
 	log.Println("Started ChatGPT")
-
-	envConfig, err := config.LoadEnvConfig(".env")
-	if err != nil {
-		log.Fatalf("Couldn't load .env config: %v", err)
-	}
-	if err := envConfig.ValidateWithDefaults(); err != nil {
-		log.Fatalf("Invalid .env config: %v", err)
-	}
 
 	bot, err := tgbot.New(envConfig.TelegramToken, time.Duration(envConfig.EditWaitSeconds))
 	if err != nil {
@@ -90,9 +96,20 @@ func main() {
 		var text string
 		switch update.Message.Command() {
 		case "help":
-			text = "Send a message to start talking with ChatGPT. You can use /reload at any point to clear the conversation history and start from scratch (don't worry, it won't delete the Telegram messages)."
+			text = messageHelp
 		case "start":
-			text = "Send a message to start talking with ChatGPT. You can use /reload at any point to clear the conversation history and start from scratch (don't worry, it won't delete the Telegram messages)."
+			text = messageStart
+		case "setToken":
+			token := update.Message.CommandArguments()
+			if token == "" {
+				text = "Please provide a token. Example: /setToken eyJhB..."
+				break
+			}
+			if err := persistentConfig.SetSessionToken(token); err != nil {
+				text = fmt.Sprintf("Error: %v", err)
+				break
+			}
+			text = "Token set successfully."
 		case "reload":
 			chatGPT.ResetConversation(updateChatID)
 			text = "Started a new conversation. Enjoy!"

@@ -21,6 +21,9 @@ After you download the file, extract it into a folder and open the `env.example`
   - Multiple IDs can be provided, separated by commas.
 - `EDIT_WAIT_SECONDS` (Optional): Amount of seconds to wait between edits
   - This is set to `1` by default, but you can increase if you start getting a lot of `Too Many Requests` errors.
+- `MANUAL_AUTH` (Optional): Setting to true will disable the browser authentication
+  - Requires setting OpenAI Session Token manually, use `/setToken <token>` bot command
+  - See [auth section](#Authentication) for info on how to get your session token
 - Save the file, and rename it to `.env`.
 > **Note** Make sure you rename the file to _exactly_ `.env`! The program won't work otherwise.
 

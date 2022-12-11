@@ -14,6 +14,10 @@ type Config struct {
 	OpenAISession string
 }
 
+func (cfg *Config) GetSessionToken() string {
+	return cfg.OpenAISession
+}
+
 // LoadOrCreatePersistentConfig uses the default config directory for the current OS
 // to load or create a config file named "chatgpt.json"
 func LoadOrCreatePersistentConfig() (*Config, error) {

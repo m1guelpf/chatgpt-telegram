@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/m1guelpf/chatgpt-telegram/src/config"
 	"github.com/m1guelpf/chatgpt-telegram/src/expirymap"
 	"github.com/m1guelpf/chatgpt-telegram/src/sse"
 )
@@ -21,8 +20,12 @@ type Conversation struct {
 	LastMessageID string
 }
 
+type Config interface {
+	GetSessionToken() string
+}
+
 type ChatGPT struct {
-	SessionToken   string
+	cfg            Config
 	AccessTokenMap expirymap.ExpiryMap
 	conversations  map[int64]Conversation
 }
@@ -48,10 +51,10 @@ type ChatResponse struct {
 	Message string
 }
 
-func Init(config *config.Config) *ChatGPT {
+func Init(config Config) *ChatGPT {
 	return &ChatGPT{
+		cfg:            config,
 		AccessTokenMap: expirymap.New(),
-		SessionToken:   config.OpenAISession,
 		conversations:  make(map[int64]Conversation),
 	}
 }
@@ -123,6 +126,11 @@ func (c *ChatGPT) SendMessage(message string, tgChatID int64) (chan ChatResponse
 }
 
 func (c *ChatGPT) refreshAccessToken() (string, error) {
+	sessionToken := c.cfg.GetSessionToken()
+	if sessionToken == "" {
+		return "", errors.New("no session token, use /setToken command to set")
+	}
+
 	cachedAccessToken, ok := c.AccessTokenMap.Get(KEY_ACCESS_TOKEN)
 	if ok {
 		return cachedAccessToken, nil
@@ -134,7 +142,7 @@ func (c *ChatGPT) refreshAccessToken() (string, error) {
 	}
 
 	req.Header.Set("User-Agent", USER_AGENT)
-	req.Header.Set("Cookie", fmt.Sprintf("__Secure-next-auth.session-token=%s", c.SessionToken))
+	req.Header.Set("Cookie", fmt.Sprintf("__Secure-next-auth.session-token=%s", sessionToken))
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {

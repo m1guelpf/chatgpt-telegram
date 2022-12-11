@@ -44,13 +44,12 @@ func TestLoadEnvConfig(t *testing.T) {
 		want        *EnvConfig
 	}{
 		"all values empty in file and env": {
-			fileContent: `TELEGRAM_ID=
-TELEGRAM_TOKEN=
-EDIT_WAIT_SECONDS=`,
+			fileContent: emptyConfig,
 			want: &EnvConfig{
 				TelegramID:      []int64{},
 				TelegramToken:   "",
 				EditWaitSeconds: 0,
+				ManualAuth:      false,
 			},
 		},
 		"no file, all values through env": {
@@ -58,21 +57,25 @@ EDIT_WAIT_SECONDS=`,
 				"TELEGRAM_ID":       "123,456",
 				"TELEGRAM_TOKEN":    "token",
 				"EDIT_WAIT_SECONDS": "10",
+				"MANUAL_AUTH":       "true",
 			},
 			want: &EnvConfig{
 				TelegramID:      []int64{123, 456},
 				TelegramToken:   "token",
 				EditWaitSeconds: 10,
+				ManualAuth:      true,
 			},
 		},
 		"all values provided in file, single TELEGRAM_ID": {
 			fileContent: `TELEGRAM_ID=123
 TELEGRAM_TOKEN=abc
-EDIT_WAIT_SECONDS=10`,
+EDIT_WAIT_SECONDS=10
+MANUAL_AUTH=true`,
 			want: &EnvConfig{
 				TelegramID:      []int64{123},
 				TelegramToken:   "abc",
 				EditWaitSeconds: 10,
+				ManualAuth:      true,
 			},
 		},
 		"multiple TELEGRAM_IDs provided in file": {
@@ -89,16 +92,19 @@ EDIT_WAIT_SECONDS=10`,
 		"env variables should override file values": {
 			fileContent: `TELEGRAM_ID=123
 TELEGRAM_TOKEN=abc
-EDIT_WAIT_SECONDS=10`,
+EDIT_WAIT_SECONDS=10
+MANUAL_AUTH=false`,
 			envVars: map[string]string{
 				"TELEGRAM_ID":       "456",
 				"TELEGRAM_TOKEN":    "def",
 				"EDIT_WAIT_SECONDS": "20",
+				"MANUAL_AUTH":       "true",
 			},
 			want: &EnvConfig{
 				TelegramID:      []int64{456},
 				TelegramToken:   "def",
 				EditWaitSeconds: 20,
+				ManualAuth:      true,
 			},
 		},
 		"multiple TELEGRAM_IDs provided in env": {
