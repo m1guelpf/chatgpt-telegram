@@ -18,12 +18,38 @@ After you download the file, extract it into a folder and open the `env.example`
 - `TELEGRAM_ID` (Optional): Your Telegram User ID
   - If you set this, only you will be able to interact with the bot.
   - To get your ID, message `@userinfobot` on Telegram.
+  - Multiple IDs can be provided, separated by commas.
 - `EDIT_WAIT_SECONDS` (Optional): Amount of seconds to wait between edits
   - This is set to `1` by default, but you can increase if you start getting a lot of `Too Many Requests` errors.
 - Save the file, and rename it to `.env`.
 > **Note** Make sure you rename the file to _exactly_ `.env`! The program won't work otherwise.
 
 Finally, open the terminal in your computer (if you're on windows, look for `PowerShell`), navigate to the path you extracted the above file (you can use `cd dirname` to navigate to a directory, ask ChatGPT if you need more assistance 😉) and run `./chatgpt-telegram`.
+
+### Running with Docker
+
+If you're trying to run this on a server with an existing Docker setup, you might want to use our Docker image instead.
+
+```sh
+docker pull ghcr.io/m1guelpf/chatgpt-telegram
+```
+
+Here's how you'd set things up with `docker-compose`:
+
+```yaml
+services:
+  chatgpt-telegram:
+    image: ghcr.io/m1guelpf/chatgpt-telegram
+    container_name: chatgpt-telegram
+    volumes:
+      # your ".config" local folder must include a "chatgpt.json" file
+      - .config/:/root/.config
+    environment:
+      - TELEGRAM_ID=
+      - TELEGRAM_TOKEN=
+```
+
+> **Note** The docker setup is optimized for the Browserless authentication mechanism, described below. Make sure you update the `.config/chatgpt.json` file in this repo with your session token before running.
 
 ## Authentication
 
