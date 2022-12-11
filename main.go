@@ -42,7 +42,7 @@ func main() {
 		log.Fatalf("Invalid .env config: %v", err)
 	}
 
-	bot, err := tgbot.New(envConfig.TelegramToken, time.Duration(envConfig.EditWaitSeconds))
+	bot, err := tgbot.New(envConfig.TelegramToken, time.Duration(envConfig.EditWaitSeconds*int(time.Second)))
 	if err != nil {
 		log.Fatalf("Couldn't start Telegram bot: %v", err)
 	}
