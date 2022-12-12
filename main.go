@@ -20,26 +20,36 @@ func main() {
 		log.Fatalf("Couldn't load config: %v", err)
 	}
 
-	if persistentConfig.OpenAISession == "" {
-		token, err := session.GetSession()
-		if err != nil {
-			log.Fatalf("Couldn't get OpenAI session: %v", err)
-		}
+	err = godotenv.Load()
+	if err != nil {
+		log.Printf("Couldn't load .env file: %v. Using shell exposed env variables...", err)
+	}
 
-		if err = persistentConfig.SetSessionToken(token); err != nil {
-			log.Fatalf("Couldn't save OpenAI session: %v", err)
+
+	if config.OpenAISession == "" {
+		if os.Getenv("OPENAI_SESSION") == "" {
+			session, err := session.GetSession()
+			if err != nil {
+				log.Fatalf("Couldn't get OpenAI session: %v", err)
+			}
+
+			err = config.Set("OpenAISession", session)
+			if err != nil {
+				log.Fatalf("Couldn't save OpenAI session: %v", err)
+			}
+		} else
+		{
+			err = config.Set("OpenAISession", os.Getenv("OPENAI_SESSION"))
+			if err != nil {
+				log.Fatalf("Couldn't save OpenAI session: %v", err)
+			}
 		}
 	}
 
 	chatGPT := chatgpt.Init(persistentConfig)
 	log.Println("Started ChatGPT")
 
-	envConfig, err := config.LoadEnvConfig(".env")
-	if err != nil {
-		log.Printf("Couldn't load .env file: %v. Using shell exposed env variables...", err)
-	}
-
-	bot, err := tgbot.New(envConfig.TelegramToken, time.Duration(envConfig.EditWaitSeconds))
+	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
 	if err != nil {
 		log.Fatalf("Couldn't start Telegram bot: %v", err)
 	}
