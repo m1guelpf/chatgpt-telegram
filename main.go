@@ -49,7 +49,16 @@ func main() {
 	chatGPT := chatgpt.Init(persistentConfig)
 	log.Println("Started ChatGPT")
 
-	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
+	envConfig, err := config.LoadEnvConfig(".env")
+	if err != nil {
+		log.Fatalf("Couldn't load .env config: %v", err)
+	}
+	if err := envConfig.ValidateWithDefaults(); err != nil {
+		log.Fatalf("Invalid .env config: %v", err)
+	}
+
+	bot, err := tgbot.New(envConfig.TelegramToken, time.Duration(envConfig.EditWaitSeconds*int(time.Second)))
+
 	if err != nil {
 		log.Fatalf("Couldn't start Telegram bot: %v", err)
 	}
