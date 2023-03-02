@@ -93,12 +93,11 @@ func (c *ChatGPT) SendMessage(message string, tgChatID int64) (chan ChatResponse
 
 	go func() {
 		defer close(r)
-	mainLoop:
 		for {
 			select {
 			case chunk, ok := <-client.EventChannel:
 				if !ok {
-					break mainLoop
+					return
 				}
 
 				var res MessageResponse
