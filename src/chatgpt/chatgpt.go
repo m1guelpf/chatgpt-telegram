@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/m1guelpf/chatgpt-telegram/src/config"
@@ -24,6 +25,7 @@ type Conversation struct {
 type ChatGPT struct {
 	SessionToken   string
 	AccessTokenMap expirymap.ExpiryMap
+	mu             sync.Mutex // protects following
 	conversations  map[int64]Conversation
 }
 
@@ -52,6 +54,7 @@ func Init(config *config.Config) *ChatGPT {
 	return &ChatGPT{
 		AccessTokenMap: expirymap.New(),
 		SessionToken:   config.OpenAISession,
+		mu:             sync.Mutex{},
 		conversations:  make(map[int64]Conversation),
 	}
 }
@@ -67,6 +70,9 @@ func (c *ChatGPT) EnsureAuth() error {
 }
 
 func (c *ChatGPT) ResetConversation(chatID int64) {
+	c.mu.Lock() // lock the map to avoid data racing
+	defer c.mu.Unlock()
+
 	c.conversations[chatID] = Conversation{}
 }
 
@@ -83,7 +89,10 @@ func (c *ChatGPT) SendMessage(message string, tgChatID int64) (chan ChatResponse
 		"Authorization": fmt.Sprintf("Bearer %s", accessToken),
 	}
 
+	c.mu.Lock() // lock the map to avoid data racing
 	convo := c.conversations[tgChatID]
+	c.mu.Unlock()
+
 	err = client.Connect(message, convo.ID, convo.LastMessageID)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("Couldn't connect to ChatGPT: %v", err))
@@ -93,12 +102,11 @@ func (c *ChatGPT) SendMessage(message string, tgChatID int64) (chan ChatResponse
 
 	go func() {
 		defer close(r)
-	mainLoop:
 		for {
 			select {
 			case chunk, ok := <-client.EventChannel:
 				if !ok {
-					break mainLoop
+					return
 				}
 
 				var res MessageResponse
@@ -111,7 +119,10 @@ func (c *ChatGPT) SendMessage(message string, tgChatID int64) (chan ChatResponse
 				if len(res.Message.Content.Parts) > 0 {
 					convo.ID = res.ConversationId
 					convo.LastMessageID = res.Message.ID
+
+					c.mu.Lock() // lock the map to avoid data racing
 					c.conversations[tgChatID] = convo
+					c.mu.Unlock()
 
 					r <- ChatResponse{Message: res.Message.Content.Parts[0]}
 				}
