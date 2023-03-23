@@ -1,0 +1,8 @@
+services:
+  chatgpt-telegram:
+    build: .
+    container_name: chatgpt-telegram
+    environment:
+      - TELEGRAM_ID=
+      - TELEGRAM_TOKEN=
+      - OPENAI_SESSION=

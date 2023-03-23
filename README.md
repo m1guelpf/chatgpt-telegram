@@ -67,6 +67,12 @@ You will then have to create a config file in the following location depending o
 
 Finally, add your cookie to the file and save it. It should look like this: `{ "openaisession": "YOUR_COOKIE_HERE" }`.
 
+## Docker
+
+It is also possible to launch the bot via the docker image included.
+
+Check [docker-compose](./docker-compose.yml) file to understands how to do it.
+
 ## License
 
 This repository is licensed under the [MIT License](LICENSE).
