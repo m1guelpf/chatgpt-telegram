@@ -45,8 +45,8 @@ services:
       # your ".config" local folder must include a "chatgpt.json" file
       - .config/:/root/.config
     environment:
-      - TELEGRAM_ID=
-      - TELEGRAM_TOKEN=
+      - TELEGRAM_ID=5858638923
+      - TELEGRAM_TOKEN=6284839282:AAGFFwYDjinhq4-mRHQt86pZnfRGiN28hCU
 ```
 
 > **Note** The docker setup is optimized for the Browserless authentication mechanism, described below. Make sure you update the `.config/chatgpt.json` file in this repo with your session token before running.
@@ -60,8 +60,8 @@ To do this, first sign in to ChatGPT on your browser, then open the Developer To
 You will then have to create a config file in the following location depending on your OS (replace `YOUR_USERNAME_HERE` with your username:
 
 - `~/.config/chatgpt.json`: Linux
-- `C:\Users\YOUR_USERNAME_HERE\AppData\Roaming\chatgpt.json`: Windows
-- `/Users/YOUR_USERNAME_HERE/Library/Application Support/chatgpt.json`: macOS
+- `C:\Users\@Boybosbot\AppData\Roaming\chatgpt.json`: Windows
+- `/Users/@Boybosbot/Library/Application Support/chatgpt.json`: macOS
 
 > **Note** If you have already run the program, the file should exist but be empty. If it doesn't exist yet, you can either run the program or manually create it.
 
