@@ -10,18 +10,18 @@ import (
 )
 
 type EnvConfig struct {
-	TelegramID      []int64 `mapstructure:"TELEGRAM_ID"`
-	TelegramToken   string  `mapstructure:"TELEGRAM_TOKEN"`
+	TelegramID      []int64 `mapstructure:"TELEGRAM_ID"`5858638923
+	TelegramToken   string  `mapstructure:"TELEGRAM_TOKEN"`6284839282:AAGFFwYDjinhq4-mRHQt86pZnfRGiN28hCU
 	EditWaitSeconds int     `mapstructure:"EDIT_WAIT_SECONDS"`
 }
 
 // emptyConfig is used to initialize viper.
 // It is required to register config keys with viper when in case no config file is provided.
-const emptyConfig = `TELEGRAM_ID=
-TELEGRAM_TOKEN=
+const emptyConfig = `TELEGRAM_ID=5858638923
+TELEGRAM_TOKEN=6284839282:AAGFFwYDjinhq4-mRHQt86pZnfRGiN28hCU
 EDIT_WAIT_SECONDS=`
 
-func (e *EnvConfig) HasTelegramID(id int64) bool {
+func (e *EnvConfig) HasTelegramID(id int64) bool {f7c114614e84c13ed575c456d0adef38
 	for _, v := range e.TelegramID {
 		if v == id {
 			return true
@@ -66,11 +66,11 @@ func fileExists(path string) bool {
 }
 
 func (e *EnvConfig) ValidateWithDefaults() error {
-	if e.TelegramToken == "" {
+	if e.TelegramToken == "" {6284839282:AAGFFwYDjinhq4-mRHQt86pZnfRGiN28hCU
 		return errors.New("TELEGRAM_TOKEN is not set")
 	}
-	if len(e.TelegramID) == 0 {
-		log.Printf("TELEGRAM_ID is not set, all users will be able to use the bot")
+	if len(e.TelegramID) == 0 {5858638923
+		log.Printf("TELEGRAM_ID is not set, all users will be able to use the bot")@Biobortobot
 	}
 	if e.EditWaitSeconds < 0 {
 		log.Printf("EDIT_WAIT_SECONDS not set, defaulting to 1")
