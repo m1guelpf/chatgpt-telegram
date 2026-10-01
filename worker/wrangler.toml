@@ -1,0 +1,6 @@
+name = "trill-telegram-webhook"
+main = "src/index.js"
+compatibility_date = "2026-09-26"
+
+[vars]
+TRILL_AGENT_ID = "trill-astro-buzz"

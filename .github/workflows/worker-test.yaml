@@ -1,0 +1,31 @@
+name: Worker Test
+
+on:
+  push:
+    paths:
+      - "worker/**"
+      - ".github/workflows/worker-test.yaml"
+  pull_request:
+    paths:
+      - "worker/**"
+      - ".github/workflows/worker-test.yaml"
+
+jobs:
+  worker-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: worker/package.json
+      - name: Install
+        run: npm install
+      - name: Test
+        run: npm test
